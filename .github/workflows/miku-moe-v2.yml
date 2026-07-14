@@ -1,0 +1,53 @@
+name: Build Miku Moe v2
+
+on:
+  pull_request:
+    branches:
+      - global
+    paths:
+      - miku-moe-v2/**
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore source
+        run: |
+          cat miku-moe-v2/source.part.* > source.tar.gz.b64
+          base64 --decode source.tar.gz.b64 > source.tar.gz
+          echo "05eb7ff51a9ad6db584ffeef08e3d3df5a7fe969e9663326e6d3314cb079f433  source.tar.gz" | sha256sum --check
+          tar -xzf source.tar.gz
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" > /dev/null
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+      - name: Generate release key
+        run: keytool -genkeypair -v -keystore "$GITHUB_WORKSPACE/release.keystore" -storepass miku1234 -alias miku -keypass miku1234 -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Miku Moe v2, OU=Android, O=Dutaeko, L=Jakarta, ST=Jakarta, C=ID" > /dev/null
+      - name: Build APK files
+        env:
+          RELEASE_STORE_FILE: ${{ github.workspace }}/release.keystore
+          RELEASE_STORE_PASSWORD: miku1234
+          RELEASE_KEY_ALIAS: miku
+          RELEASE_KEY_PASSWORD: miku1234
+        run: gradle :app:assembleDebug :app:assembleRelease --stacktrace --console=plain
+      - name: Collect APK files
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/MikuMoe-v2-debug.apk
+          cp app/build/outputs/apk/release/app-release.apk dist/MikuMoe-v2-release.apk
+          sha256sum dist/*.apk > dist/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MikuMoe-v2-apks
+          path: dist/*
+          if-no-files-found: error
