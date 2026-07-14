@@ -1,0 +1,2 @@
+https://raw.githubusercontent.com/Dutaeko/build-apps/agent/naru-komik-v1-build/naru-komik-v1/dist/NaruKomik-v1-debug.apk
+https://raw.githubusercontent.com/Dutaeko/build-apps/agent/naru-komik-v1-build/naru-komik-v1/dist/NaruKomik-v1-release.apk
