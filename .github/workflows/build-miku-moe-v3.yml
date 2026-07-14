@@ -45,12 +45,28 @@ jobs:
       - name: Generate release key
         run: keytool -genkeypair -v -keystore "$GITHUB_WORKSPACE/release.keystore" -storepass miku1234 -alias miku -keypass miku1234 -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Miku Moe v2, OU=Android, O=Dutaeko, L=Jakarta, ST=Jakarta, C=ID" > /dev/null
       - name: Build APK files
+        id: build
         env:
           RELEASE_STORE_FILE: ${{ github.workspace }}/release.keystore
           RELEASE_STORE_PASSWORD: miku1234
           RELEASE_KEY_ALIAS: miku
           RELEASE_KEY_PASSWORD: miku1234
-        run: gradle :app:assembleDebug :app:assembleRelease --stacktrace --console=plain
+        run: |
+          code=0
+          gradle :app:assembleDebug :app:assembleRelease --stacktrace --console=plain > build.log 2>&1 || code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MikuMoe-v3-build-log
+          path: build.log
+          if-no-files-found: error
+      - name: Report build failure
+        if: steps.build.outputs.exit_code != '0'
+        run: |
+          tail -n 300 build.log
+          exit 1
       - name: Collect APK files
         run: |
           mkdir -p dist
