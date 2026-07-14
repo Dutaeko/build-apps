@@ -1,0 +1,24 @@
+name: Package Naru Komik v1 APK
+
+on:
+  pull_request:
+    branches:
+      - global
+    paths:
+      - "naru-komik-v1/.package-trigger"
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NaruKomik-v1-apks
+          path: |
+            naru-komik-v1/dist/NaruKomik-v1-debug.apk
+            naru-komik-v1/dist/NaruKomik-v1-release.apk
+            naru-komik-v1/dist/SHA256SUMS.txt
+          if-no-files-found: error
