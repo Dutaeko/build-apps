@@ -19,7 +19,8 @@ jobs:
         id: restore
         run: |
           code=0
-          {
+          (
+            set -e
             git fetch origin agent/miku-moe-v2-build --depth=1
             git checkout FETCH_HEAD -- miku-moe-v2
             cat miku-moe-v2/source.part.00 miku-moe-v2/source.part.01 > source.tar.gz.b64
@@ -37,16 +38,13 @@ jobs:
             echo "a7cd4d3227d785e45e934ab4512596c8a8346a78c5280558a793f9ddbe36d7a6  v3.patch.gz.b64" | sha256sum --check
             base64 --decode v3.patch.gz.b64 > v3.patch.gz
             gzip -dc v3.patch.gz > v3.patch
-            cd MikuMoe-v2
-            patch --batch -p5 < ../v3.patch
-            cd ..
+            patch --batch -p5 < v3.patch
             cat miku-moe-v4/patch.part.* > v4.patch.gz.b64
             echo "c995e7f07ad4d480c6c0ea66e3febe0e74ffad8ab6833a1f74ee874841aafa33  v4.patch.gz.b64" | sha256sum --check
             base64 --decode v4.patch.gz.b64 > v4.patch.gz
             gzip -dc v4.patch.gz > v4.patch
-            cd MikuMoe-v2
-            patch --batch -p1 < ../v4.patch
-          } > restore.log 2>&1 || code=$?
+            patch --batch -p1 < v4.patch
+          ) > restore.log 2>&1 || code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
       - name: Upload restore log
         if: always()
@@ -73,7 +71,6 @@ jobs:
       - name: Generate release key
         run: keytool -genkeypair -v -keystore "$GITHUB_WORKSPACE/release.keystore" -storepass miku1234 -alias miku -keypass miku1234 -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Miku Moe v2, OU=Android, O=Dutaeko, L=Jakarta, ST=Jakarta, C=ID" > /dev/null
       - name: Build APK files
-        working-directory: MikuMoe-v2
         env:
           RELEASE_STORE_FILE: ${{ github.workspace }}/release.keystore
           RELEASE_STORE_PASSWORD: miku1234
@@ -83,8 +80,8 @@ jobs:
       - name: Collect APK files
         run: |
           mkdir -p dist
-          cp MikuMoe-v2/app/build/outputs/apk/debug/app-debug.apk dist/MikuMoe-v4-debug.apk
-          cp MikuMoe-v2/app/build/outputs/apk/release/app-release.apk dist/MikuMoe-v4-release.apk
+          cp app/build/outputs/apk/debug/app-debug.apk dist/MikuMoe-v4-debug.apk
+          cp app/build/outputs/apk/release/app-release.apk dist/MikuMoe-v4-release.apk
           sha256sum dist/*.apk > dist/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
