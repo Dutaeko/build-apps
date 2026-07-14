@@ -1,2 +1,2 @@
-57983916aa4630bc638813ebbb37c6efc3671fd01708300c64444824ac5e9760  naru-komik-v1/dist/NaruKomik-v1-debug.apk
-b5efac7f4262d5b02534a89f7d4201f830ed81e90de4c4bc4774e2490edf301f  naru-komik-v1/dist/NaruKomik-v1-release.apk
+9aa2782f360459f92fc1468cf194827269b1a1830a9dbe3c57ae4568a9750b3d  naru-komik-v1/dist/NaruKomik-v1-debug.apk
+dc24009e8efc2f00340b42ee62374f1ad7689d74f8fc1f77e93200271319a5cf  naru-komik-v1/dist/NaruKomik-v1-release.apk
