@@ -15,15 +15,13 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/upload-artifact@v4
-        with:
-          name: MikuMoe-v2-source-parts
-          path: miku-moe-v2/source.part.*
       - name: Restore source
         run: |
           cat miku-moe-v2/source.part.00 miku-moe-v2/source.part.01 > source.tar.gz.b64
-          head -c 8000 miku-moe-v2/source.part.02 >> source.tar.gz.b64
-          head -c 8000 miku-moe-v2/source.part.03 >> source.tar.gz.b64
+          head -c 1222 miku-moe-v2/source.part.02 >> source.tar.gz.b64
+          tail -c +1224 miku-moe-v2/source.part.02 >> source.tar.gz.b64
+          head -c 6703 miku-moe-v2/source.part.03 >> source.tar.gz.b64
+          cat miku-moe-v2/source.part.03.tail >> source.tar.gz.b64
           cat miku-moe-v2/source.part.04 >> source.tar.gz.b64
           base64 --decode source.tar.gz.b64 > source.tar.gz
           echo "05eb7ff51a9ad6db584ffeef08e3d3df5a7fe969e9663326e6d3314cb079f433  source.tar.gz" | sha256sum --check
