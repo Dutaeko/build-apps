@@ -1,0 +1,72 @@
+name: Build Miku Moe v6
+
+on:
+  pull_request:
+    branches:
+      - global
+    paths:
+      - payload-v6/**
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore source
+        run: |
+          cat payload-v6/source.part.* > source.tar.gz.b64
+          echo "af0f3ad5522ddc5557bc6d23dcea6a72f2e4ba718806dfcdc39e6704f4faf699  source.tar.gz.b64" | sha256sum --check
+          base64 --decode source.tar.gz.b64 > source.tar.gz
+          echo "f67b6ba386638d25c0dd7cbdd95118e7e7cb9c44e32695304f9ac799f4a4f71d  source.tar.gz" | sha256sum --check
+          tar -xzf source.tar.gz
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" > /dev/null
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+      - name: Generate release key
+        run: keytool -genkeypair -v -keystore "$GITHUB_WORKSPACE/release.keystore" -storepass miku1234 -alias miku -keypass miku1234 -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Miku Moe v2, OU=Android, O=Dutaeko, L=Jakarta, ST=Jakarta, C=ID" > /dev/null
+      - name: Build APK files
+        id: build
+        working-directory: MikuMoe-v6
+        env:
+          RELEASE_STORE_FILE: ${{ github.workspace }}/release.keystore
+          RELEASE_STORE_PASSWORD: miku1234
+          RELEASE_KEY_ALIAS: miku
+          RELEASE_KEY_PASSWORD: miku1234
+        run: |
+          code=0
+          gradle :app:assembleDebug :app:assembleRelease --stacktrace --console=plain > build.log 2>&1 || code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MikuMoe-v6-build-log
+          path: MikuMoe-v6/build.log
+          if-no-files-found: ignore
+      - name: Report build failure
+        if: steps.build.outputs.exit_code != '0'
+        working-directory: MikuMoe-v6
+        run: |
+          tail -n 300 build.log
+          exit 1
+      - name: Collect APK files
+        run: |
+          mkdir -p dist
+          cp MikuMoe-v6/app/build/outputs/apk/debug/app-debug.apk dist/MikuMoe-v6-debug.apk
+          cp MikuMoe-v6/app/build/outputs/apk/release/app-release.apk dist/MikuMoe-v6-release.apk
+          sha256sum dist/*.apk > dist/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MikuMoe-v6-apks
+          path: dist/*
+          if-no-files-found: error
