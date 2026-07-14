@@ -20,9 +20,9 @@ jobs:
         run: |
           code=0
           {
-            sha256sum payload-v5/source.part.*
-            wc -c payload-v5/source.part.*
-            cat payload-v5/source.part.* > source.tar.gz.b64
+            sha256sum payload-v5/source.part.00 payload-v5/source.part.01 payload-v5/source.part.02 payload-v5/source.part.03 payload-v5/source.part.04a payload-v5/source.part.04b payload-v5/source.part.05 payload-v5/source.part.06 payload-v5/source.part.07 payload-v5/source.part.08 payload-v5/source.part.09
+            wc -c payload-v5/source.part.00 payload-v5/source.part.01 payload-v5/source.part.02 payload-v5/source.part.03 payload-v5/source.part.04a payload-v5/source.part.04b payload-v5/source.part.05 payload-v5/source.part.06 payload-v5/source.part.07 payload-v5/source.part.08 payload-v5/source.part.09
+            cat payload-v5/source.part.00 payload-v5/source.part.01 payload-v5/source.part.02 payload-v5/source.part.03 payload-v5/source.part.04a payload-v5/source.part.04b payload-v5/source.part.05 payload-v5/source.part.06 payload-v5/source.part.07 payload-v5/source.part.08 payload-v5/source.part.09 > source.tar.gz.b64
             sha256sum source.tar.gz.b64
             wc -c source.tar.gz.b64
             echo "dd6fcbe751b457f80662df870f6d0dab5c5adb20ee51955dcec4dd95fcc70d89  source.tar.gz.b64" | sha256sum --check
