@@ -15,6 +15,10 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MikuMoe-v2-source-parts
+          path: miku-moe-v2/source.part.*
       - name: Restore source
         run: |
           cat miku-moe-v2/source.part.00 miku-moe-v2/source.part.01 > source.tar.gz.b64
