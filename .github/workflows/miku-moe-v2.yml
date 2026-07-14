@@ -15,17 +15,10 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - name: Inspect source parts
-        run: |
-          sha256sum miku-moe-v2/source.part.* > chunk-hashes.txt
-          wc -c miku-moe-v2/source.part.* >> chunk-hashes.txt
-      - uses: actions/upload-artifact@v4
-        with:
-          name: MikuMoe-v2-source-diagnostics
-          path: chunk-hashes.txt
       - name: Restore source
         run: |
-          cat miku-moe-v2/source.part.00 miku-moe-v2/source.part.01 miku-moe-v2/source.part.02 > source.tar.gz.b64
+          cat miku-moe-v2/source.part.00 miku-moe-v2/source.part.01 > source.tar.gz.b64
+          head -c 8000 miku-moe-v2/source.part.02 >> source.tar.gz.b64
           head -c 8000 miku-moe-v2/source.part.03 >> source.tar.gz.b64
           cat miku-moe-v2/source.part.04 >> source.tar.gz.b64
           base64 --decode source.tar.gz.b64 > source.tar.gz
