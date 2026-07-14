@@ -17,8 +17,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Restore source
         run: |
-          echo "f67b6ba386638d25c0dd7cbdd95118e7e7cb9c44e32695304f9ac799f4a4f71d  payload-v6/source.tar.gz" | sha256sum --check
-          tar -xzf payload-v6/source.tar.gz
+          cat payload-v6/source.part.* > source.tar.gz.b64
+          echo "af0f3ad5522ddc5557bc6d23dcea6a72f2e4ba718806dfcdc39e6704f4faf699  source.tar.gz.b64" | sha256sum --check
+          base64 --decode source.tar.gz.b64 > source.tar.gz
+          echo "f67b6ba386638d25c0dd7cbdd95118e7e7cb9c44e32695304f9ac799f4a4f71d  source.tar.gz" | sha256sum --check
+          tar -xzf source.tar.gz
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
