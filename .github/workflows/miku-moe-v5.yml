@@ -16,43 +16,60 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Restore source
+        id: restore
         run: |
-          git fetch origin agent/miku-moe-v2-build --depth=1
-          git checkout FETCH_HEAD -- miku-moe-v2
-          cat miku-moe-v2/source.part.00 miku-moe-v2/source.part.01 > source.tar.gz.b64
-          head -c 1222 miku-moe-v2/source.part.02 >> source.tar.gz.b64
-          tail -c +1224 miku-moe-v2/source.part.02 >> source.tar.gz.b64
-          head -c 6703 miku-moe-v2/source.part.03 >> source.tar.gz.b64
-          cat miku-moe-v2/source.part.03.tail >> source.tar.gz.b64
-          cat miku-moe-v2/source.part.04 >> source.tar.gz.b64
-          base64 --decode source.tar.gz.b64 > source.tar.gz
-          echo "05eb7ff51a9ad6db584ffeef08e3d3df5a7fe969e9663326e6d3314cb079f433  source.tar.gz" | sha256sum --check
-          tar -xzf source.tar.gz
-          git fetch origin agent/miku-moe-v3-build --depth=1
-          git checkout FETCH_HEAD -- miku-moe-v3/patch.part.00 miku-moe-v3/patch.part.01 miku-moe-v3/patch.part.02
-          cat miku-moe-v3/patch.part.* > v3.patch.gz.b64
-          echo "a7cd4d3227d785e45e934ab4512596c8a8346a78c5280558a793f9ddbe36d7a6  v3.patch.gz.b64" | sha256sum --check
-          base64 --decode v3.patch.gz.b64 > v3.patch.gz
-          gzip -dc v3.patch.gz > v3.patch
-          cd MikuMoe-v2
-          patch --batch -p5 < ../v3.patch
-          cd ..
-          git fetch origin agent/miku-moe-v4-build --depth=1
-          git checkout FETCH_HEAD -- miku-moe-v4/patch.part.00 miku-moe-v4/patch.part.01 miku-moe-v4/patch.part.02
-          cat miku-moe-v4/patch.part.* > v4.patch.gz.b64
-          echo "c995e7f07ad4d480c6c0ea66e3febe0e74ffad8ab6833a1f74ee874841aafa33  v4.patch.gz.b64" | sha256sum --check
-          base64 --decode v4.patch.gz.b64 > v4.patch.gz
-          gzip -dc v4.patch.gz > v4.patch
-          cd MikuMoe-v2
-          patch --batch -p1 < ../v4.patch
-          cd ..
-          cat miku-moe-v5/patch.part.* > v5.patch.gz.b64
-          echo "644b1321d1ce51814759883c97e60b67f020e21bc5963202a1fb0691342165fe  v5.patch.gz.b64" | sha256sum --check
-          base64 --decode v5.patch.gz.b64 > v5.patch.gz
-          echo "4d9796694d3866450622099136bd9e92a6420d29ce925e71fdef15c55f3f0b18  v5.patch.gz" | sha256sum --check
-          gzip -dc v5.patch.gz > v5.patch
-          cd MikuMoe-v2
-          patch --batch -p1 < ../v5.patch
+          code=0
+          {
+            git fetch origin agent/miku-moe-v2-build --depth=1
+            git checkout FETCH_HEAD -- miku-moe-v2
+            cat miku-moe-v2/source.part.00 miku-moe-v2/source.part.01 > source.tar.gz.b64
+            head -c 1222 miku-moe-v2/source.part.02 >> source.tar.gz.b64
+            tail -c +1224 miku-moe-v2/source.part.02 >> source.tar.gz.b64
+            head -c 6703 miku-moe-v2/source.part.03 >> source.tar.gz.b64
+            cat miku-moe-v2/source.part.03.tail >> source.tar.gz.b64
+            cat miku-moe-v2/source.part.04 >> source.tar.gz.b64
+            base64 --decode source.tar.gz.b64 > source.tar.gz
+            echo "05eb7ff51a9ad6db584ffeef08e3d3df5a7fe969e9663326e6d3314cb079f433  source.tar.gz" | sha256sum --check
+            tar -xzf source.tar.gz
+            git fetch origin agent/miku-moe-v3-build --depth=1
+            git checkout FETCH_HEAD -- miku-moe-v3/patch.part.00 miku-moe-v3/patch.part.01 miku-moe-v3/patch.part.02
+            cat miku-moe-v3/patch.part.* > v3.patch.gz.b64
+            echo "a7cd4d3227d785e45e934ab4512596c8a8346a78c5280558a793f9ddbe36d7a6  v3.patch.gz.b64" | sha256sum --check
+            base64 --decode v3.patch.gz.b64 > v3.patch.gz
+            gzip -dc v3.patch.gz > v3.patch
+            cd MikuMoe-v2
+            patch --batch -p5 < ../v3.patch
+            cd ..
+            git fetch origin agent/miku-moe-v4-build --depth=1
+            git checkout FETCH_HEAD -- miku-moe-v4/patch.part.00 miku-moe-v4/patch.part.01 miku-moe-v4/patch.part.02
+            cat miku-moe-v4/patch.part.* > v4.patch.gz.b64
+            echo "c995e7f07ad4d480c6c0ea66e3febe0e74ffad8ab6833a1f74ee874841aafa33  v4.patch.gz.b64" | sha256sum --check
+            base64 --decode v4.patch.gz.b64 > v4.patch.gz
+            gzip -dc v4.patch.gz > v4.patch
+            cd MikuMoe-v2
+            patch --batch -p1 < ../v4.patch
+            cd ..
+            cat miku-moe-v5/patch.part.* > v5.patch.gz.b64
+            echo "644b1321d1ce51814759883c97e60b67f020e21bc5963202a1fb0691342165fe  v5.patch.gz.b64" | sha256sum --check
+            base64 --decode v5.patch.gz.b64 > v5.patch.gz
+            echo "4d9796694d3866450622099136bd9e92a6420d29ce925e71fdef15c55f3f0b18  v5.patch.gz" | sha256sum --check
+            gzip -dc v5.patch.gz > v5.patch
+            cd MikuMoe-v2
+            patch --batch -p1 < ../v5.patch
+          } > restore.log 2>&1 || code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+      - name: Upload restore log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MikuMoe-v5-restore-log
+          path: restore.log
+          if-no-files-found: error
+      - name: Report restore failure
+        if: steps.restore.outputs.exit_code != '0'
+        run: |
+          cat restore.log
+          exit 1
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -83,7 +100,7 @@ jobs:
         with:
           name: MikuMoe-v5-build-log
           path: MikuMoe-v2/build.log
-          if-no-files-found: error
+          if-no-files-found: ignore
       - name: Report build failure
         if: steps.build.outputs.exit_code != '0'
         working-directory: MikuMoe-v2
