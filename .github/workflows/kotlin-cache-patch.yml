@@ -26,8 +26,9 @@ jobs:
       - name: Package Kotlin cache
         if: steps.resolve.outputs.exit_code == '0'
         run: |
-          mkdir -p patch/caches/modules-2/files-2.1/org.jetbrains.kotlin patch/caches/modules-2
+          mkdir -p patch/caches/modules-2/files-2.1/org.jetbrains.kotlin patch/caches/modules-2/files-2.1/org.jetbrains.kotlinx patch/caches/modules-2
           cp -a "$HOME/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/." patch/caches/modules-2/files-2.1/org.jetbrains.kotlin/
+          cp -a "$HOME/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/." patch/caches/modules-2/files-2.1/org.jetbrains.kotlinx/
           for dir in "$HOME"/.gradle/caches/modules-2/metadata-*; do
             cp -a "$dir" patch/caches/modules-2/
           done
