@@ -1,0 +1,56 @@
+name: Kotlin Cache Patch
+on:
+  pull_request:
+    branches:
+      - global
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.4.1'
+      - name: Resolve Kotlin build tools
+        id: resolve
+        working-directory: seed
+        run: |
+          code=0
+          gradle --no-daemon :app:assembleDebug --stacktrace > ../kotlin-cache-build.log 2>&1 || code=$?
+          cat ../kotlin-cache-build.log
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+      - name: Package Kotlin cache
+        if: steps.resolve.outputs.exit_code == '0'
+        run: |
+          mkdir -p patch/caches/modules-2/files-2.1/org.jetbrains.kotlin patch/caches/modules-2
+          cp -a "$HOME/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/." patch/caches/modules-2/files-2.1/org.jetbrains.kotlin/
+          for dir in "$HOME"/.gradle/caches/modules-2/metadata-*; do
+            cp -a "$dir" patch/caches/modules-2/
+          done
+          tar -czf kotlin-cache-patch.tar.gz -C patch .
+          sha256sum kotlin-cache-patch.tar.gz > kotlin-cache-patch.sha256
+          ls -lh kotlin-cache-patch.tar.gz
+      - uses: actions/upload-artifact@v4
+        if: steps.resolve.outputs.exit_code == '0'
+        with:
+          name: kotlin-cache-patch
+          path: |
+            kotlin-cache-patch.tar.gz
+            kotlin-cache-patch.sha256
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kotlin-cache-patch-log
+          path: kotlin-cache-build.log
+          retention-days: 1
+          if-no-files-found: error
+      - name: Report dependency failure
+        if: steps.resolve.outputs.exit_code != '0'
+        run: exit 1
