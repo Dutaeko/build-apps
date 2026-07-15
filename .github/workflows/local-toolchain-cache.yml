@@ -1,0 +1,195 @@
+name: Local Android Toolchain Cache
+on:
+  pull_request:
+    branches:
+      - global
+jobs:
+  toolchain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.4.1'
+      - name: Install Android SDK
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Create dependency seed
+        run: |
+          mkdir -p seed/app/src/main/java/miku/moe/app seed/app/src/main/res/values
+          cat > seed/settings.gradle.kts <<'EOF'
+          pluginManagement {
+            repositories {
+              gradlePluginPortal()
+              google()
+              mavenCentral()
+              maven(url = "https://jitpack.io")
+            }
+          }
+          dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+              google()
+              mavenCentral()
+              maven(url = "https://jitpack.io")
+            }
+          }
+          rootProject.name = "Dependency Seed"
+          include(":app")
+          EOF
+          cat > seed/build.gradle.kts <<'EOF'
+          plugins {
+            id("com.android.application") version "9.2.0" apply false
+            id("com.android.library") version "9.2.0" apply false
+            id("org.jetbrains.kotlin.plugin.compose") version "2.4.0" apply false
+          }
+          EOF
+          cat > seed/gradle.properties <<'EOF'
+          android.useAndroidX=true
+          android.enableJetifier=true
+          org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8
+          EOF
+          cat > seed/app/build.gradle.kts <<'EOF'
+          plugins {
+            id("com.android.application")
+            id("org.jetbrains.kotlin.plugin.compose")
+          }
+          android {
+            namespace = "miku.moe.app"
+            compileSdk = 36
+            defaultConfig {
+              applicationId = "miku.moe.app"
+              minSdk = 23
+              targetSdk = 34
+              versionCode = 3
+              versionName = "3.3"
+              vectorDrawables {
+                useSupportLibrary = true
+              }
+            }
+            compileOptions {
+              sourceCompatibility = JavaVersion.VERSION_11
+              targetCompatibility = JavaVersion.VERSION_11
+              isCoreLibraryDesugaringEnabled = true
+            }
+            buildTypes {
+              release {
+                isMinifyEnabled = true
+                isShrinkResources = true
+                proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+              }
+            }
+            buildFeatures {
+              viewBinding = true
+              compose = true
+            }
+          }
+          dependencies {
+            implementation("androidx.appcompat:appcompat:1.7.1")
+            implementation("androidx.cardview:cardview:1.0.0")
+            implementation("androidx.constraintlayout:constraintlayout:2.2.1")
+            implementation("androidx.drawerlayout:drawerlayout:1.2.0")
+            implementation("androidx.recyclerview:recyclerview:1.4.0")
+            implementation("com.google.android.material:material:1.14.0")
+            implementation("com.squareup.retrofit2:retrofit:3.0.0")
+            implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+            implementation(platform("com.squareup.okhttp3:okhttp-bom:5.4.0"))
+            implementation("com.squareup.okhttp3:okhttp")
+            implementation("com.squareup.okhttp3:logging-interceptor")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
+            implementation("androidx.room:room-runtime:2.8.4")
+            annotationProcessor("androidx.room:room-compiler:2.8.4")
+            implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
+            implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.10.0")
+            implementation(platform("androidx.compose:compose-bom:2026.05.00"))
+            implementation("androidx.compose.ui:ui")
+            implementation("androidx.compose.ui:ui-graphics")
+            implementation("androidx.compose.ui:ui-tooling-preview")
+            implementation("androidx.compose.foundation:foundation")
+            implementation("androidx.compose.material3:material3")
+            implementation("androidx.compose.material:material-icons-extended")
+            implementation("androidx.activity:activity-compose:1.13.0")
+            implementation("com.android.volley:volley:1.2.1")
+            implementation("com.github.bumptech.glide:glide:5.0.7")
+            annotationProcessor("com.github.bumptech.glide:compiler:5.0.7")
+            implementation("io.coil-kt:coil:2.7.0")
+            implementation("io.coil-kt:coil-compose:2.7.0")
+            implementation("androidx.media3:media3-exoplayer:1.10.1")
+            implementation("androidx.media3:media3-ui:1.10.1")
+            implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0")
+            implementation("org.jsoup:jsoup:1.22.2")
+            implementation("com.github.chrisbanes:PhotoView:2.3.0")
+            debugImplementation("androidx.compose.ui:ui-tooling")
+            coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+          }
+          EOF
+          : > seed/app/proguard-rules.pro
+          cat > seed/app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <application android:theme="@style/AppTheme">
+              <activity android:name=".MainActivity" android:exported="true">
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN" />
+                  <category android:name="android.intent.category.LAUNCHER" />
+                </intent-filter>
+              </activity>
+            </application>
+          </manifest>
+          EOF
+          cat > seed/app/src/main/java/miku/moe/app/MainActivity.java <<'EOF'
+          package miku.moe.app;
+          public class MainActivity extends android.app.Activity {}
+          EOF
+          cat > seed/app/src/main/res/values/styles.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+            <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar" />
+          </resources>
+          EOF
+      - name: Resolve dependencies
+        id: resolve
+        working-directory: seed
+        run: |
+          code=0
+          gradle --no-daemon :app:assembleDebug :app:assembleRelease --stacktrace > ../seed-build.log 2>&1 || code=$?
+          cat ../seed-build.log
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+      - name: Package toolchain
+        if: steps.resolve.outputs.exit_code == '0'
+        run: |
+          gradle_bin="$(readlink -f "$(command -v gradle)")"
+          gradle_root="$(dirname "$(dirname "$gradle_bin")")"
+          mkdir -p bundle/android-sdk/build-tools bundle/android-sdk/platforms
+          cp -a "$gradle_root" bundle/gradle
+          cp -a "$HOME/.gradle" bundle/gradle-home
+          cp -a "$ANDROID_HOME/build-tools/36.0.0" bundle/android-sdk/build-tools/
+          cp -a "$ANDROID_HOME/platforms/android-36" bundle/android-sdk/platforms/
+          cp -a "$ANDROID_HOME/licenses" bundle/android-sdk/
+          rm -rf bundle/gradle-home/daemon bundle/gradle-home/workers
+          tar -czf android-toolchain-cache.tar.gz -C bundle .
+          sha256sum android-toolchain-cache.tar.gz > android-toolchain-cache.sha256
+      - uses: actions/upload-artifact@v4
+        if: steps.resolve.outputs.exit_code == '0'
+        with:
+          name: android-toolchain-cache
+          path: |
+            android-toolchain-cache.tar.gz
+            android-toolchain-cache.sha256
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-toolchain-cache-log
+          path: seed-build.log
+          retention-days: 1
+          if-no-files-found: error
+      - name: Report dependency failure
+        if: steps.resolve.outputs.exit_code != '0'
+        run: exit 1
