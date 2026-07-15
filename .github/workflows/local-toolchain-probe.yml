@@ -1,0 +1,16 @@
+name: Local Toolchain Probe
+on:
+  push:
+    branches:
+      - challenge-local-res-v1
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create probe
+        run: printf 'local-toolchain-probe\n' > probe.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: local-toolchain-probe
+          path: probe.txt
+          if-no-files-found: error
