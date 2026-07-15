@@ -37,14 +37,37 @@ jobs:
           rm -rf bundle/gradle-home/daemon bundle/gradle-home/workers
           tar -czf android-toolchain-cache.tar.gz -C bundle .
           sha256sum android-toolchain-cache.tar.gz > android-toolchain-cache.sha256
+          split -b 350000000 -d -a 1 android-toolchain-cache.tar.gz android-toolchain-cache.part.
+          ls -lh android-toolchain-cache.tar.gz android-toolchain-cache.part.*
       - uses: actions/upload-artifact@v4
         if: steps.resolve.outputs.exit_code == '0'
         with:
-          name: android-toolchain-cache
-          path: |
-            android-toolchain-cache.tar.gz
-            android-toolchain-cache.sha256
+          name: android-toolchain-cache-part-0
+          path: android-toolchain-cache.part.0
           compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: steps.resolve.outputs.exit_code == '0'
+        with:
+          name: android-toolchain-cache-part-1
+          path: android-toolchain-cache.part.1
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: steps.resolve.outputs.exit_code == '0'
+        with:
+          name: android-toolchain-cache-part-2
+          path: android-toolchain-cache.part.2
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: steps.resolve.outputs.exit_code == '0'
+        with:
+          name: android-toolchain-cache-sha256
+          path: android-toolchain-cache.sha256
           retention-days: 1
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
